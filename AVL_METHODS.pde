@@ -111,27 +111,26 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
    */
 
   public void insertarRaiz(int valor) {
-    raiz = insertar(raiz, valor);
+    raiz = insertarNodo(raiz, valor);
   }
 
-  Nodo insertar(Nodo nodo, int info) {
+  Nodo insertarNodo(Nodo nodo, int info) {
     if (nodo==null) {
       return new Nodo(info); //no tenemos que instanciar nada, puesto que estamos retornando!! :OOO1
     }
     if (info < nodo.data) {
-      nodo.izq = insertar(nodo.izq, info);
+      nodo.izq = insertarNodo(nodo.izq, info);
     } else if (info>nodo.data) {
-      nodo.der = insertar(nodo.der, info);
+      nodo.der = insertarNodo(nodo.der, info);
     } else {
       return nodo; // si el valor es igual, retorna el nodo actual y ya, pa q no se rompa nada
       // no sé si se explote si no lo pongo, así que lo voy a dejar kjskajsa
     }
 
-    //actualizamos la altura después de insertar.
+    //naturalmente, actualizamos la altura después de insertar, pues hicimos un cambio reestructural en el árbol.
     actualizarAltura(nodo);
 
-    //calculamos el balance ahora después de insertar
-
+    //puede que el árbol haya quedado desbalanceado tras una inserción, por lo que toca calcular el balance pa ver si se tiene que balancear o no.
     int b = balance(nodo);
 
     //comparamos los casos de desequilibrio
@@ -166,10 +165,130 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     return nodo;
   }
 
+  /*
+  4. ELIMINATION
+   */
 
+  //en caso de que quiera eliminar la raiz, o no sé si todo, falta probar :v
+  //mentirita, esto es para no tener que siempre pasar por la raiz.
+  public void eliminarRaiz(int info) {
+    // Si borramos la raíz y no tenía hijos, la raiz quedará en null, queda el árbol vacío (duh).
+    raiz = eliminarNodo(raiz, info);
+  }
+
+  private Nodo eliminarNodo(Nodo nodo, int info) {
+    //si el nodo es nulo, pues no hay nada que borrar
+    if (nodo == null) return null;
+
+    // vamos bajando como si fuera un ABB, es decir, recorremos el árbol hasta que el valor que queremos borrar sea igual al nodo en el que estamos
+    // if(valor ==nodo.data){ sout("coronamos")}
+
+    // Si info es menor que la data del nodo actual, se borra en el subárbol izquierdo
+    if (info < nodo.data) {
+      nodo.izq = eliminarNodo(nodo.izq, info);
+
+      // Si info es mayor, se borra en el subárbol derecho
+    } else if (info > nodo.data) {
+      nodo.der = eliminarNodo(nodo.der, info);
+    } else {
+      // LA INFO ES IGUAL A LA NODO.DATA, LO ENCONTRAMOS!!
+
+
+      // a partir de acá, hay varios casos dependiendo de los hijos que tenga dicho nodo a borrar
+
+      // CASO 1) si tiene 0 hijos (hoja) O 1 hijo:
+      // Si uno de los hijos es null, el resultado del borrado es el otro hijo.
+      // Con esto estamoss cubriendo el caso de la hoja (ambos null, entonces => hijo = null) y nodo con un solo hijo.
+      if (nodo.izq == null || nodo.der == null) {
+        //usamos operador ternario con el fin de ombe, reducir código jkajskja
+        // básicamente, si mi izquierdo NO es nulo, mi variable "hijo" será el izquierdo y, si es nulo, mi variable "hijo" será el nodo derecho
+        Nodo hijo = (nodo.izq != null) ? nodo.izq : nodo.der;
+        // entonces, "Eliminamos" el nodo actual reemplazándolo por su hijo (puede ser null en caso de ser hoja).
+        nodo = hijo;
+      } else {
+        // CASO 2) 2 hijos (izq y der NO son null):
+        // Lo que hacemos, es buscar el más pequeño del subárbol derecho por medio del inorden.
+        //  quiere decir que vamos a buscar el que esté "más a la izquierda" dentro del subárbol derecho del nodo que vamos a eliminar.
+        //PRIMERO: BUSCAMOS A DICHO COLE, A ESE "SUCESOR" en el subárbol derecho:
+        Nodo sucesor = minNodo(nodo.der);
+        //cambio el valor del nodo a borrar por el del sucesor, BORRANDO DICHO VALOR, POR LO QUE "BORRAMOS" EL NODO.
+        nodo.data = sucesor.data;
+        /*Como no podemos tener valores repetidos, borramos al sucesor, el cual claro,
+         al ser el que más a la izquierda está en el subárbol derecho, no tiene
+         ningún nodo izquierdo, por lo que cae en el CASO 1) 0 o 1 hijo.
+         */
+        nodo.der = eliminarNodo(nodo.der, sucesor.data);
+      }
+    }
+
+    // Si tras el borrado, este subárbol quedó vacío (nodo == null), ya no hay que ni actualizar alturas ni balancear
+    if (nodo == null) return null;
+
+    /*en caso de que no haya quedado vacío:
+     // 3) ACTUALIZAMOS LA ALTURA del nodo actual (porque cambió su estructura, claro)
+     recordemos que la altura(null)=0 y las hojas quedan con altura=1. */
+    actualizarAltura(nodo);
+
+    // 4) rebalanceamos
+    int b = balance(nodo);
+
+    // RE-BALANCEO EN ELIMINACIÓN
+    // en eliminación NO tenemos "el último valor insertado" para decidir simple/doble.
+    // Aquí miramos el balance del hijo correspondiente para saber si la rotación es simple o doble (ombe, como en el parcial)
+
+    // Si está DESBALANCEADO a la DERECHA (b > 1):
+    if (b > 1) {
+      // Miramos el balance del hijo derecho:
+      // Si balance(der) >= 0 significa que el hijo derecho NO está cargado a la izquierda
+      // entonces es una SIMPLE LEFT
+      if (balance(nodo.der) >= 0) {
+        return simpleLeft(nodo);
+      } else {
+        // Si balance(der) < 0 significa que el hijo derecho está cargado a la izquierda
+        // entonces es una DOUBLE RIGHT LEFT: primero RIGHT sobre el hijo, luego LEFT sobre el nodo.
+        nodo.der = simpleRight(nodo.der);
+        return simpleLeft(nodo);
+      }
+    }
+
+    // Caso DESBALANCEADO a la IZQUIERDA (b < -1):
+    if (b < -1) {
+      // Miramos el balance del hijo izquierdo:
+      // Si balance(izq) <= 0 el hijo izquierdo NO está cargado a la derecha
+      // entonces es una SIMPLE RIGHT.
+      if (balance(nodo.izq) <= 0) {
+        return simpleRight(nodo);
+      } else {
+        // Si balance(izq) > 0 el hijo izquierdo sí está cargado a la derecha
+        // entonces es una DOUBLE LEFT-RIGHT: primero LEFT sobre el hijo, luego RIGHT sobre el nodo.
+        nodo.izq = simpleLeft(nodo.izq);
+        return simpleRight(nodo);
+      }
+    }
+
+    // Si el balance quedó en el rango adecuado {-1, 0, 1}, coronamos, no hay rotaciones ni cambios por hacer!!!
+    return nodo;
+  }
+
+  //esta es la función que utilizamos para buscar al "SUCESOR" del subárbol derecho.
+  // Devuelve el nodo con el valor mínimo en el subárbol cuya raíz es "nodo".
+  // como ya dijimos, lo que hace esto es simplemente encontrar el SUCESOR por medio del inorden (mínimo del derecho).
+
+  private Nodo minNodo(Nodo nodo) {
+    //creamos una variable aux de tipo nodo para recorrer el subárbol derecho. empezamos desde la raíz de dicho subárbol, que es "nodo"
+    Nodo aux = nodo;
+    /* hasta que no hayamos encontrado el más izquierdo de los izquierdos (:V)
+     no vamos a dejar de cambiar a aux por valores más pequeños que él, es decir, por izquierdos "más izquierdos" a aux kjsajsak
+     todo esto con el fin de encontrar el más chiquito en el subárbol derecho del nodo a eliminar.
+     */
+    while (aux != null && aux.izq != null) {
+      aux = aux.izq;
+    }
+    return aux;
+  }
 
   /*
-  4. otros
+  5. otros
    */
 
   void preorden(Nodo nodo) {
