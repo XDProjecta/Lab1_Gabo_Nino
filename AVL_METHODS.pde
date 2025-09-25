@@ -5,15 +5,13 @@ class ArbolAVL {
     this.raiz = nodo;
   }
 
-
-
   /*
   1. UTILIDADES (altura, actualizar altura, balanceo.)
    */
 
   //tanto para la altura como para el balance, podemos hacer uso de operador ternario, debido a que usamos solo dos condiciones !!! :O
-  public int altura(Nodo n) {
-    return (n == null) ? 0 : n.altura;
+  public int altura(Nodo nodo) {
+    return (nodo == null) ? 0 : nodo.altura;
   }
 
   public int factorBalanceo(Nodo nodo) {
@@ -129,12 +127,12 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
 
     //es útil para saber si el valor cae simple o cae doble, porque sin eso, no habría manera de diferenciar los casos
 
-    if (b > 1 & tPromedio > nodo.nodoDer.tPromedio) { //acá nos pregunta si es derecha y si cayó RECTECITO hasta el final, es decir, si es simpleRight
-      return simpleRight(nodo);
+    if (b > 1 & tPromedio > nodo.nodoDer.tPromedio) { //acá nos pregunta si es derecha y si cayó RECTECITO hasta el final, es decir, si es simpleLeft
+      return simpleLeft(nodo);
     }
 
-    if (b < -1 & tPromedio < nodo.nodoIzq.tPromedio) { //acá nos pregunta si es izquierda y si cayó RECTECITO hasta el final, es decir, si es simpleLeft
-      return simpleLeft(nodo);
+    if (b < -1 & tPromedio < nodo.nodoIzq.tPromedio) { //acá nos pregunta si es izquierda y si cayó RECTECITO hasta el final, es decir, si es simpleRight
+      return simpleRight(nodo);
     }
 
     if (b > 1 & tPromedio < nodo.nodoDer.tPromedio) { //acá nos pregunta si es derecha y si cayó CRUZADO hasta el final, es decir, si es DOUBLE RIGHT-LEFT
@@ -144,7 +142,7 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
       return simpleLeft(nodo);
     }
 
-    if (b < -1 & tPromedio < nodo.nodoDer.tPromedio) { //acá nos pregunta si es izquierda y si cayó CRUZADO hasta el final, es decir, si es DOUBLE LEFT-RIGHT
+    if (b < -1 & tPromedio > nodo.nodoIzq.tPromedio) { //acá nos pregunta si es izquierda y si cayó CRUZADO hasta el final, es decir, si es DOUBLE LEFT-RIGHT
       //hacemos una simpleLeft con el izquierdo del desbalanceado
       nodo.nodoIzq = simpleLeft(nodo.nodoIzq);
       //luego hacemos una simpleRight con el nodo desbalanceado
@@ -155,29 +153,44 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     return nodo;
   }
   
-  void insertarNuevoNodo(String ISO3, String country, Nodo nodo){
-    ArrayList<String> fila = new ArrayList<>();
-    fila.add(str(int(datacsv.get(datacsv.size()-1).get(0))+1));
+  void insertarNuevoNodo(String ISO3, String country, Nodo nodo) {
+  ArrayList<String> fila;
+  float tProm;
+  int intentos = 0;
+  final int MAX_INTENTOS = 1000; // pa que no se vaya hasta el infinito y explote todo
+
+  do {
+    fila = new ArrayList<String>();
+
+    // id autoincremental 
+    fila.add(str(int(datacsv.get(datacsv.size()-1).get(0)) + 1));
     fila.add(country);
     fila.add(ISO3);
+
+    // generamos 62 valores aleatorios y su promedio
     float acum = 0.0;
-    for(int i = 0; i< 62 ; i++){
-      float numero = random(-3,4);
+    for (int i = 0; i < 62; i++) {
+      float numero = random(-3, 4);
       acum += numero;
       fila.add(str(numero));
-      
     }
-    fila.add(str(acum/62));
-    float tProm = acum/62;
-    if(buscarNodo(acum/62) == null){
-      datacsv.add(fila);
-      insertarNodo(nodo, ISO3,tProm ,country);
+    tProm = acum / 62.0;
+    fila.add(str(tProm));
+
+    intentos++;
+    if (intentos >= MAX_INTENTOS) {
+      println("No se pudo generar un tProm único tras " + MAX_INTENTOS + " intentos.");
+      break;
     }
-    else{
-      insertarNuevoNodo(ISO3,country,nodo);
-    }
-    
+    // repetimos mientras YA exista un nodo con ese promedio
+  } while (buscarNodo(tProm) != null);
+
+  if (intentos < MAX_INTENTOS) {
+    datacsv.add(fila);
+    insertarNodo(nodo, ISO3, tProm, country);
   }
+}
+
 
   /*
   4. ELIMINATION
@@ -187,11 +200,11 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
   //mentirita, esto es para no tener que siempre pasar por la raiz.
   // ELIMINACIÓN por media de temperatura
   public void eliminarRaiz(float mediaTemperatura) {
-    int info = (int)(mediaTemperatura * 100);
+    float info = mediaTemperatura;
     raiz = eliminarNodo(raiz, info);
   }
 
-  private Nodo eliminarNodo(Nodo nodo, double info) {
+  private Nodo eliminarNodo(Nodo nodo, float info) {
     //si el nodo es nulo, pues no hay nada que borrar
     if (nodo == null) return null;
 
@@ -345,11 +358,11 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
   private void buscarCriterioA(Nodo nodo, int año, float promedioAnual, ArrayList<Nodo> resultados) {
     if (nodo == null) return;
 
-    buscarCriterioA(nodo.nodoIzq, año, promedioAnual, resultados);
+    buscarCriterioA(nodo.nodoIzq, año, promedioAnual, resultados);  
 
 
     for (ArrayList<String> linea : datacsv) {
-      if (float(linea.get(año-1961 + 2)) > promedioAnual) {
+      if (Float.parseFloat(linea.get(año-1961 + 2)) > promedioAnual && linea.get(2).equals(nodo.ISO3)) {
         resultados.add(nodo);
       }
     }
@@ -465,7 +478,7 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     float suma = 0;
     int contador = 0;
     for (ArrayList<String> linea : datacsv) {
-      float temp = float(linea.get(año-1961 + 2));
+      float temp = Float.parseFloat(linea.get(año-1961 + 2));
       suma += temp;
       contador ++;
     }
@@ -476,7 +489,7 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
   private float calcularPromedioGlobal() {
     float suma = 0;
     for (ArrayList<String> linea : datacsv) {
-      suma += float(linea.get(linea.size()-1));
+      suma += Float.parseFloat(linea.get(linea.size()-1));
     }
 
     return datacsv.size() > 0 ? suma / datacsv.size() : 0;

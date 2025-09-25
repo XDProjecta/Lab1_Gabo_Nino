@@ -11,7 +11,7 @@ class Nodo {
     
     this.country = country;
     this.ISO3 = ISO3;
-    this.altura = 0; 
+    this.altura = 1; 
     this.x = width/2;
     this.y = 150;
   }
