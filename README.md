@@ -1,6 +1,6 @@
 # Lab1_Gabo_Nino
 
-DATOS 2!!!
+DATOS 2!!
 
-Gabriel Mosquera 😮😮😮
-Valentina NIÑO 😔😔😔😔
+Gabriel Mosquera 🙄🙄🙄
+Valentina NIÑO 😮😮😮
