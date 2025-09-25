@@ -1,43 +1,18 @@
-public class Nodo {
-  public int data;
-  public Nodo der, izq;
-  public int altura;
-  public DatosPais datosPais; // Referencia a los datos del país
-
-  public Nodo(int data, DatosPais datosPais) {
-    this.data = data;
-    this.datosPais = datosPais;
-    this.der = null;
-    this.izq = null;
-    this.altura = 1;
-  }
-}
-
-class DatosPais {
-  int objectId;
+class Nodo {
   String country;
-  String iso3;
-  HashMap<Integer, Float> temperaturas;
-  float mediaTemperatura;
+  String ISO3;
+  float tPromedio;
+  Nodo nodoIzq, nodoDer;
+  int altura;
+  float x, y; 
 
-  DatosPais(int objectId, String country, String iso3) {
-    this.objectId = objectId;
-    this.country = country;
-    this.iso3 = iso3;
-    this.temperaturas = new HashMap<Integer, Float>();
-    this.mediaTemperatura = 0;
-  }
-
-  void calcularMediaTemperatura() {
-    if (temperaturas.isEmpty()) {
-      mediaTemperatura = 0;
-      return;
-    }
+  Nodo(float tPromedio, String country, String ISO3){ 
+    this.tPromedio = tPromedio;
     
-    float suma = 0;
-    for (Float temp : temperaturas.values()) {
-      suma += temp;
-    }
-    mediaTemperatura = suma / temperaturas.size();
+    this.country = country;
+    this.ISO3 = ISO3;
+    this.altura = 0; 
+    this.x = width/2;
+    this.y = 150;
   }
 }
