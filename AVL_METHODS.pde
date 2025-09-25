@@ -1,9 +1,12 @@
 class ArbolAVL {
   private Nodo raiz;
+  private ArrayList<DatosPais> todosPaises;
 
   ArbolAVL() {
     this.raiz = null;
+    this.todosPaises = new ArrayList<DatosPais>();
   }
+
 
 
   /*
@@ -69,39 +72,23 @@ pasamos de parámetro al desbalanceado, y hacemos los cambios para la nueva raiz
 para evitar tener cadenas así en las variables, ombe, creamos nuevas variables con el fin de mejorar la legibilidad
    */
   Nodo simpleLeft(Nodo aux) {
-    // aux = nodo desbalanceado
-    Nodo x = aux.der;    // x = hijo derecho de aux
-    Nodo y = x.izq;      // y = hijo izquierdo de x
-
-    //el nuevo derecho de aux va a ser el izquierdo del hijo derecho de aux
+    Nodo x = aux.der;
+    Nodo y = x.izq;
     aux.der = y;
-
-    //al derecho de aux, le clavamos un nuevo izquierdo, que será aux
     x.izq = aux;
-
-    //actualizamos las alturas
-    actualizarAltura(aux);   // aux cambió de hijos, su altura puede bajar
-    actualizarAltura(x);     // x es la nueva raíz del subárbol, su altura puede subir
-
-    return x; // x se convierte en la nueva raíz
+    actualizarAltura(aux);
+    actualizarAltura(x);
+    return x;
   }
 
   Nodo simpleRight(Nodo aux) {
-    // aux = nodo desbalanceado
-    Nodo x = aux.izq;    // x = hijo izquierdo de aux
-    Nodo y = x.der;      // y = hijo derecho de x
-
-    //el nuevo izquierdo de aux va a ser el derecho del hijo izquierdo de aux
+    Nodo x = aux.izq;
+    Nodo y = x.der;
     aux.izq = y;
-
-    //al izquierdo de aux, le clavamos un nuevo derecho, que será aux
     x.der = aux;
-
-    //actualizamos las alturas
-    actualizarAltura(aux);   // aux cambió de hijos, su altura puede bajar
-    actualizarAltura(x);     // x es la nueva raíz del subárbol, su altura puede subir
-
-    return x; // x se convierte en la nueva raíz
+    actualizarAltura(aux);
+    actualizarAltura(x);
+    return x;
   }
 
 
@@ -110,23 +97,30 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
   3. INSERCIONES
    */
 
-  public void insertarRaiz(int valor) {
-    raiz = insertarNodo(raiz, valor);
+  // INSERCIÓN MODIFICADA para usar datos climáticos
+  public void insertarRaiz(DatosPais pais) {
+    int info = (int)(pais.mediaTemperatura * 100);
+    raiz = insertarNodo(raiz, info, pais.iso3, pais.mediaTemperatura, pais);
+    todosPaises.add(pais);
   }
 
-  Nodo insertarNodo(Nodo nodo, int info) {
-    if (nodo==null) {
-      return new Nodo(info); //no tenemos que instanciar nada, puesto que estamos retornando!! :OOO1
+ 
+
+  Nodo insertarNodo(Nodo nodo, int info, String iso3, float mediaTemp, DatosPais datosPais) {
+    if (nodo == null) {
+      return new Nodo(info, iso3, mediaTemp, DatosPais); //no tenemos que instanciar nada, puesto que estamos retornando!! :OOO1
     }
+
     if (info < nodo.data) {
-      nodo.izq = insertarNodo(nodo.izq, info);
-    } else if (info>nodo.data) {
-      nodo.der = insertarNodo(nodo.der, info);
+      nodo.izq = insertarNodo(nodo.izq, info, iso3, mediaTemp, datosPais);
+    } else if (info > nodo.data) {
+      nodo.der = insertarNodo(nodo.der, info, iso3, mediaTemp, datosPais);
     } else {
       return nodo; // si el valor es igual, retorna el nodo actual y ya, pa q no se rompa nada
       // no sé si se explote si no lo pongo, así que lo voy a dejar kjskajsa
     }
-
+    
+    
     //naturalmente, actualizamos la altura después de insertar, pues hicimos un cambio reestructural en el árbol.
     actualizarAltura(nodo);
 
@@ -171,8 +165,9 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
 
   //en caso de que quiera eliminar la raiz, o no sé si todo, falta probar :v
   //mentirita, esto es para no tener que siempre pasar por la raiz.
-  public void eliminarRaiz(int info) {
-    // Si borramos la raíz y no tenía hijos, la raiz quedará en null, queda el árbol vacío (duh).
+  // ELIMINACIÓN por media de temperatura
+  public void eliminarRaiz(float mediaTemperatura) {
+    int info = (int)(mediaTemperatura * 100);
     raiz = eliminarNodo(raiz, info);
   }
 
@@ -286,9 +281,192 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     }
     return aux;
   }
+  
+  
+  // 3. BUSCAR NODO por métrica (media temperatura)
+  public Nodo buscarNodo(float mediaTemperatura) {
+    int info = (int)(mediaTemperatura * 100);
+    return buscarNodoRec(raiz, info);
+  }
+
+  private Nodo buscarNodoRec(Nodo nodo, int info) {
+    if (nodo == null || nodo.data == info) {
+      return nodo;
+    }
+
+    if (info < nodo.data) {
+      return buscarNodoRec(nodo.izq, info);
+    } else {
+      return buscarNodoRec(nodo.der, info);
+    }
+  }
+  
+  // 4. BUSCAR POR CRITERIOS
+  public ArrayList<Nodo> buscarPorCriterio(String criterio, int año, float valor) {
+    ArrayList<Nodo> resultados = new ArrayList<Nodo>();
+    
+    switch(criterio) {
+    case "a": // Mayor al promedio en año dado
+      float promedioAnual = calcularPromedioAnual(año);
+      buscarCriterioA(raiz, año, promedioAnual, resultados);
+      break;
+    case "b": // Menor al promedio global
+      float promedioGlobal = calcularPromedioGlobal();
+      buscarCriterioB(raiz, promedioGlobal, resultados);
+      break;
+    case "c": // Media mayor o igual a valor
+      buscarCriterioC(raiz, valor, resultados);
+      break;
+    }
+    
+    return resultados;
+  }
+
+  private void buscarCriterioA(Nodo nodo, int año, float promedioAnual, ArrayList<Nodo> resultados) {
+    if (nodo == null) return;
+    
+    buscarCriterioA(nodo.izq, año, promedioAnual, resultados);
+    
+    if (nodo.datosPais != null) {
+      DatosPais pais = (DatosPais)nodo.datosPais;
+      Float tempAnio = pais.temperaturas.get(año);
+      if (tempAnio != null && tempAnio > promedioAnual) {
+        resultados.add(nodo);
+      }
+    }
+    
+    buscarCriterioA(nodo.der, año, promedioAnual, resultados);
+  }
+
+  private void buscarCriterioB(Nodo nodo, float promedioGlobal, ArrayList<Nodo> resultados) {
+    if (nodo == null) return;
+    
+    buscarCriterioB(nodo.izq, promedioGlobal, resultados);
+    
+    if (nodo.mediaTemperatura < promedioGlobal) {
+      resultados.add(nodo);
+    }
+    
+    buscarCriterioB(nodo.der, promedioGlobal, resultados);
+  }
+
+  private void buscarCriterioC(Nodo nodo, float valor, ArrayList<Nodo> resultados) {
+    if (nodo == null) return;
+    
+    buscarCriterioC(nodo.izq, valor, resultados);
+    
+    if (nodo.mediaTemperatura >= valor) {
+      resultados.add(nodo);
+    }
+    
+    buscarCriterioC(nodo.der, valor, resultados);
+  }
+  
+  
+  
+  // 5. RECORRIDO POR NIVELES (recursivo)
+  public ArrayList<String> recorridoPorNiveles() {
+    ArrayList<String> resultado = new ArrayList<String>();
+    if (raiz == null) return resultado;
+    
+    ArrayList<Nodo> cola = new ArrayList<Nodo>();
+    cola.add(raiz);
+    
+    recorridoPorNivelesRec(cola, resultado);
+    return resultado;
+  }
+
+  private void recorridoPorNivelesRec(ArrayList<Nodo> cola, ArrayList<String> resultado) {
+    if (cola.isEmpty()) return;
+    
+    Nodo actual = cola.remove(0);
+    resultado.add(actual.iso3);
+    
+    if (actual.izq != null) cola.add(actual.izq);
+    if (actual.der != null) cola.add(actual.der);
+    
+    recorridoPorNivelesRec(cola, resultado);
+  }
+  
+  /*
+  5. Obtener info nodo
+   */
+   
+   public int obtenerNivel(Nodo nodo) {
+    return obtenerNivelRec(raiz, nodo, 1);
+  }
+
+  private int obtenerNivelRec(Nodo actual, Nodo buscado, int nivel) {
+    if (actual == null) return -1;
+    if (actual == buscado) return nivel;
+    
+    int nivelIzq = obtenerNivelRec(actual.izq, buscado, nivel + 1);
+    if (nivelIzq != -1) return nivelIzq;
+    
+    return obtenerNivelRec(actual.der, buscado, nivel + 1);
+  }
+
+  public int factorBalanceo(Nodo nodo) {
+    return balance(nodo);
+  }
+
+  public Nodo obtenerPadre(Nodo hijo) {
+    return obtenerPadreRec(raiz, hijo);
+  }
+
+  private Nodo obtenerPadreRec(Nodo actual, Nodo hijo) {
+    if (actual == null || actual == hijo) return null;
+    if (actual.izq == hijo || actual.der == hijo) return actual;
+    
+    Nodo padreIzq = obtenerPadreRec(actual.izq, hijo);
+    if (padreIzq != null) return padreIzq;
+    
+    return obtenerPadreRec(actual.der, hijo);
+  }
+
+  public Nodo obtenerAbuelo(Nodo nodo) {
+    Nodo padre = obtenerPadre(nodo);
+    return (padre != null) ? obtenerPadre(padre) : null;
+  }
+
+  public Nodo obtenerTio(Nodo nodo) {
+    Nodo padre = obtenerPadre(nodo);
+    if (padre == null) return null;
+    
+    Nodo abuelo = obtenerPadre(padre);
+    if (abuelo == null) return null;
+    
+    return (abuelo.izq == padre) ? abuelo.der : abuelo.izq;
+  }
+
 
   /*
-  5. otros
+  6. Calcular promedios
+   */
+   
+   private float calcularPromedioAnual(int año) {
+    float suma = 0;
+    int contador = 0;
+    for (DatosPais pais : todosPaises) {
+      Float temp = pais.temperaturas.get(año);
+      if (temp != null) {
+        suma += temp;
+        contador++;
+      }
+    }
+    return contador > 0 ? suma / contador : 0;
+  }
+  
+  private float calcularPromedioGlobal() {
+    float suma = 0;
+    for (DatosPais pais : todosPaises) {
+      suma += pais.mediaTemperatura;
+    }
+    return todosPaises.size() > 0 ? suma / todosPaises.size() : 0;
+  }
+
+  /*
+  7. Orden
    */
 
   void preorden(Nodo nodo) {
@@ -321,5 +499,38 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     } else {
       return;
     }
+  }
+  
+  // MÉTODO PARA DIBUJAR EL ÁRBOL (útil para la interfaz)
+  void dibujarArbol(float x, float y, float espaciado) {
+    dibujarNodo(raiz, x, y, espaciado);
+  }
+
+  private void dibujarNodo(Nodo nodo, float x, float y, float espaciado) {
+    if (nodo == null) return;
+
+    // Dibujar líneas a los hijos
+    if (nodo.izq != null) {
+      float xIzq = x - espaciado;
+      float yIzq = y + 80;
+      line(x, y + 15, xIzq, yIzq - 15);
+      dibujarNodo(nodo.izq, xIzq, yIzq, espaciado / 2);
+    }
+
+    if (nodo.der != null) {
+      float xDer = x + espaciado;
+      float yDer = y + 80;
+      line(x, y + 15, xDer, yDer - 15);
+      dibujarNodo(nodo.der, xDer, yDer, espaciado / 2);
+    }
+
+    // Dibujar nodo
+    fill(200, 220, 255);
+    stroke(0);
+    ellipse(x, y, 80, 30);
+    fill(0);
+    textAlign(CENTER, CENTER);
+    textSize(8);
+    text(nodo.iso3 + "\n" + nf(nodo.mediaTemperatura, 0, 2), x, y);
   }
 }
