@@ -104,10 +104,12 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     if (nodo == null) {
       return new Nodo(tPromedio, country, iso3 ); //no tenemos que instanciar nada, puesto que estamos retornando!! :OOO1
     }
-
+    println("holaaa");
     if (tPromedio < nodo.tPromedio) {
+      print("hola1");
       nodo.nodoIzq = insertarNodo(nodo.nodoIzq, iso3, tPromedio, country);
     } else if (tPromedio > nodo.tPromedio) {
+      print("hola2");
       nodo.nodoDer = insertarNodo(nodo.nodoDer, iso3, tPromedio, country);
     } else {
       return nodo; // si el valor es igual, retorna el nodo actual y ya, pa q no se rompa nada
@@ -127,22 +129,22 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
 
     //es útil para saber si el valor cae simple o cae doble, porque sin eso, no habría manera de diferenciar los casos
 
-    if (b > 1 & tPromedio > nodo.nodoDer.tPromedio) { //acá nos pregunta si es derecha y si cayó RECTECITO hasta el final, es decir, si es simpleLeft
+    if (b > 1 && nodo.nodoDer != null && tPromedio > nodo.nodoDer.tPromedio) { //acá nos pregunta si es derecha y si cayó RECTECITO hasta el final, es decir, si es simpleLeft
       return simpleLeft(nodo);
     }
 
-    if (b < -1 & tPromedio < nodo.nodoIzq.tPromedio) { //acá nos pregunta si es izquierda y si cayó RECTECITO hasta el final, es decir, si es simpleRight
+    if (b < -1 && nodo.nodoIzq != null && tPromedio < nodo.nodoIzq.tPromedio) { //acá nos pregunta si es izquierda y si cayó RECTECITO hasta el final, es decir, si es simpleRight
       return simpleRight(nodo);
     }
 
-    if (b > 1 & tPromedio < nodo.nodoDer.tPromedio) { //acá nos pregunta si es derecha y si cayó CRUZADO hasta el final, es decir, si es DOUBLE RIGHT-LEFT
+    if (b > 1 && nodo.nodoDer != null && tPromedio < nodo.nodoDer.tPromedio) { //acá nos pregunta si es derecha y si cayó CRUZADO hasta el final, es decir, si es DOUBLE RIGHT-LEFT
       //hacemos una simpleRight con el derecho del desbalanceado
       nodo.nodoDer = simpleRight(nodo.nodoDer);
       //luego hacemos una simpleLeft con el nodo origen
       return simpleLeft(nodo);
     }
 
-    if (b < -1 & tPromedio > nodo.nodoIzq.tPromedio) { //acá nos pregunta si es izquierda y si cayó CRUZADO hasta el final, es decir, si es DOUBLE LEFT-RIGHT
+    if (b < -1 && nodo.nodoIzq != null && tPromedio > nodo.nodoIzq.tPromedio) { //acá nos pregunta si es izquierda y si cayó CRUZADO hasta el final, es decir, si es DOUBLE LEFT-RIGHT
       //hacemos una simpleLeft con el izquierdo del desbalanceado
       nodo.nodoIzq = simpleLeft(nodo.nodoIzq);
       //luego hacemos una simpleRight con el nodo desbalanceado
@@ -241,6 +243,8 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
         Nodo sucesor = minNodo(nodo.nodoDer);
         //cambio el valor del nodo a borrar por el del sucesor, BORRANDO DICHO VALOR, POR LO QUE "BORRAMOS" EL NODO.
         nodo.tPromedio = sucesor.tPromedio;
+        nodo.ISO3 = sucesor.ISO3;
+        nodo.country = sucesor.country;
         /*Como no podemos tener valores repetidos, borramos al sucesor, el cual claro,
          al ser el que más a la izquierda está en el subárbol derecho, no tiene
          ningún nodo izquierdo, por lo que cae en el CASO 1) 0 o 1 hijo.
