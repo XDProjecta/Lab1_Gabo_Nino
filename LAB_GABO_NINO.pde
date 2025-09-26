@@ -355,10 +355,10 @@ void mousePressed() {
     println();
     anyActivated = true;
   }
-  if (mouseX >=botonX && mouseY>= botonY-80 && mouseX<= botonW && mouseY <= botonH) {
+  if (mouseX >=botonX && mouseY>= botonY-80 && mouseX<= botonX+botonW && mouseY <=botonY-80+ botonH) {
     String iso = inputs[3];
     String country = inputs[4];
-    arbol.insertarNuevoNodo(iso, country, arbol.raiz);
+    arbol.insertarNuevoNodo(iso, country);
   }
 
   // si clickeó fuera de todo, desactivar todos
@@ -401,13 +401,15 @@ void keyPressed() {
           break;
         }
       }
-      Nodo nuevoNodo = new Nodo(valor, country, iso);
-      if (arbol == null) {
-        arbol = new ArbolAVL(nuevoNodo);
-      } else {
-        arbol.raiz = arbol.insertarNodo(arbol.raiz, iso, valor, country);
+      if (!country.isEmpty()) {
+        Nodo nuevoNodo = new Nodo(valor, country, iso);
+        if (arbol == null) {
+          arbol = new ArbolAVL(nuevoNodo);
+        } else {
+          arbol.raiz = arbol.insertarNodo(arbol.raiz, iso, valor, country);
+        }
+        if (activeIndex != -1) inputs[activeIndex] = "";
       }
-      if (activeIndex != -1) inputs[activeIndex] = "";
     }
     return;
   }

@@ -104,12 +104,12 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     if (nodo == null) {
       return new Nodo(tPromedio, country, iso3 ); //no tenemos que instanciar nada, puesto que estamos retornando!! :OOO1
     }
-    println("holaaa");
+
     if (tPromedio < nodo.tPromedio) {
-      print("hola1");
+
       nodo.nodoIzq = insertarNodo(nodo.nodoIzq, iso3, tPromedio, country);
     } else if (tPromedio > nodo.tPromedio) {
-      print("hola2");
+
       nodo.nodoDer = insertarNodo(nodo.nodoDer, iso3, tPromedio, country);
     } else {
       return nodo; // si el valor es igual, retorna el nodo actual y ya, pa q no se rompa nada
@@ -155,17 +155,15 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     return nodo;
   }
   
-  void insertarNuevoNodo(String ISO3, String country, Nodo nodo) {
+  void insertarNuevoNodo(String ISO3, String country) {
   ArrayList<String> fila;
   float tProm;
-  int intentos = 0;
-  final int MAX_INTENTOS = 1000; // pa que no se vaya hasta el infinito y explote todo
 
-  do {
+
     fila = new ArrayList<String>();
 
     // id autoincremental 
-    fila.add(str(int(datacsv.get(datacsv.size()-1).get(0)) + 1));
+    fila.add("99");
     fila.add(country);
     fila.add(ISO3);
 
@@ -179,18 +177,9 @@ para evitar tener cadenas así en las variables, ombe, creamos nuevas variables 
     tProm = acum / 62.0;
     fila.add(str(tProm));
 
-    intentos++;
-    if (intentos >= MAX_INTENTOS) {
-      println("No se pudo generar un tProm único tras " + MAX_INTENTOS + " intentos.");
-      break;
-    }
-    // repetimos mientras YA exista un nodo con ese promedio
-  } while (buscarNodo(tProm) != null);
 
-  if (intentos < MAX_INTENTOS) {
     datacsv.add(fila);
-    insertarNodo(nodo, ISO3, tProm, country);
-  }
+    this.raiz = insertarNodo(this.raiz, ISO3, tProm, country);
 }
 
 
