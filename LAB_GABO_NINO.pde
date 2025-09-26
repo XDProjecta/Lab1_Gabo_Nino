@@ -93,7 +93,7 @@ void draw() {
     textAlign(LEFT, BASELINE);
     text("Altura del arbol: 0", 20, height - 60);
   }
-  
+
   // botón grande de "Busqueda avanzada"
   float botonX = width - 190;
   float botonY = height - 80;
@@ -104,7 +104,7 @@ void draw() {
   fill(255);
   textAlign(LEFT, CENTER);
   text("Busqueda avanzada", botonX + 5, botonY + botonH/2);
-  
+
   // nuevos textfields (índices 3 = año, 4 = valor) a la izquierda del botón
   float tfW = 90;
   float tfH = 30;
@@ -132,7 +132,7 @@ void draw() {
   fill(0);
   textSize(12);
   textAlign(LEFT, BOTTOM);
-  text("Año", tf1_x, tf_y - 6);
+  text("Año/ISO", tf1_x, tf_y - 6);
 
   // dibujar campo Valor (index 4)
   if (textfieldActive[4]) {
@@ -152,13 +152,20 @@ void draw() {
   fill(0);
   textSize(12);
   textAlign(LEFT, BOTTOM);
-  text("Valor", tf2_x, tf_y - 6);
+  text("Valor/Pais", tf2_x, tf_y - 6);
 
   // restaurar alineamientos
   textAlign(LEFT, BASELINE);
   strokeWeight(1);
   noFill();
   stroke(180);
+
+  fill(0, 100, 255);
+  rect(botonX, botonY-80, botonW, botonH, 10);
+  fill(255);
+  textAlign(LEFT, CENTER);
+  textSize(20);
+  text("insercion Nueva", botonX + 5, botonY-80 + botonH/2);
 }
 
 void drawArbol(Nodo nodo, int x, int y, int separacion) {
@@ -218,7 +225,8 @@ String infoNodoSimple(Nodo n) {
     java.lang.reflect.Field f = n.getClass().getField("tPromedio");
     Object val = f.get(n);
     s += ", tPromNodo: " + val;
-  } catch (Exception e) {
+  }
+  catch (Exception e) {
     // no existe el campo o no se pudo leer: lo ignoramos
   }
 
@@ -239,33 +247,37 @@ String infoNodoSimple(Nodo n) {
 // ----------------------
 void mousePressed() {
   // 1) Si clickeaste sobre un nodo del árbol, mostrar su info en consola y resaltarlo
-if (arbol != null && arbol.raiz != null) {
-  Nodo clickeado = nodoEnPosicion(arbol.raiz, mouseX, mouseY);
-  if (clickeado != null) {
-    // desmarcar nodo previamente seleccionado
-    if (nodoE != null) nodoE.fondo = color(200);
+  if (arbol != null && arbol.raiz != null) {
+    Nodo clickeado = nodoEnPosicion(arbol.raiz, mouseX, mouseY);
+    if (clickeado != null) {
+      // desmarcar nodo previamente seleccionado
+      if (nodoE != null) nodoE.fondo = color(200);
 
-    // asignar nuevo seleccionado y resaltarlo
-    nodoE = clickeado;
-    nodoE.fondo = color(255, 122, 122);
+      // asignar nuevo seleccionado y resaltarlo
+      nodoE = clickeado;
+      nodoE.fondo = color(255, 122, 122);
 
-    // imprimir datos del nodo y sus parientes
-    println("=== Nodo clickeado y parentesco ===");
-    println("Nodo:   " + infoNodoSimple(nodoE));
+      // imprimir datos del nodo y sus parientes
+      println("=== Nodo clickeado y parentesco ===");
+      println("Nodo:   " + infoNodoSimple(nodoE));
 
-    Nodo padre = arbol.obtenerPadre(nodoE);
-    println("Padre:  " + infoNodoSimple(padre));
+      Nodo padre = arbol.obtenerPadre(nodoE);
+      println("Padre:  " + infoNodoSimple(padre));
 
-    Nodo abuelo = arbol.obtenerAbuelo(nodoE);
-    println("Abuelo: " + infoNodoSimple(abuelo));
+      Nodo abuelo = arbol.obtenerAbuelo(nodoE);
+      println("Abuelo: " + infoNodoSimple(abuelo));
 
-    Nodo tio = arbol.obtenerTio(nodoE);
-    println("Tío:    " + infoNodoSimple(tio));
+      Nodo tio = arbol.obtenerTio(nodoE);
+      println("Tío:    " + infoNodoSimple(tio));
+      int nivelNodo = arbol.obtenerNivel(nodoE);
+      println("Nivel:  " + nivelNodo);
 
-    println("===================================");
-    return; // terminamos el mousePressed porque ya manejamos el clic
+      int factor = arbol.factorBalanceo(nodoE);
+      println("Factor de balanceo: " + factor);
+      println("===================================");
+      return; // terminamos el mousePressed porque ya manejamos el clic
+    }
   }
-}
 
 
   // -------------------------
@@ -318,30 +330,35 @@ if (arbol != null && arbol.raiz != null) {
   if (!anyActivated && mouseX >= botonX && mouseX <= botonX + botonW && mouseY >= botonY && mouseY <= botonY + botonH) {
     ArrayList<Nodo> resultados;
     println("Busqueda de Criterio A");
-    resultados = arbol.buscarPorCriterio("a",int(inputs[3]),float(inputs[4]));
-    for(Nodo nodo: resultados){
+    resultados = arbol.buscarPorCriterio("a", int(inputs[3]), float(inputs[4]));
+    for (Nodo nodo : resultados) {
       print(nodo.ISO3 + "   ");
     }
     println();
     println("Busqueda de Criterio B");
-    resultados = arbol.buscarPorCriterio("b",int(inputs[3]),float(inputs[4]));
-    for(Nodo nodo: resultados){
+    resultados = arbol.buscarPorCriterio("b", int(inputs[3]), float(inputs[4]));
+    for (Nodo nodo : resultados) {
       print(nodo.ISO3 + "   ");
     }
     println();
     println("Busqueda de Criterio C");
-    resultados = arbol.buscarPorCriterio("c",int(inputs[3]),float(inputs[4]));
-    for(Nodo nodo: resultados){
+    resultados = arbol.buscarPorCriterio("c", int(inputs[3]), float(inputs[4]));
+    for (Nodo nodo : resultados) {
       print(nodo.ISO3 + "   ");
     }
     println();
     println("Recorrido por niveles");
     ArrayList<String> reco = arbol.recorridoPorNiveles();
-    for(String h : reco){
+    for (String h : reco) {
       print(h+ "    ");
     }
     println();
     anyActivated = true;
+  }
+  if (mouseX >=botonX && mouseY>= botonY-80 && mouseX<= botonW && mouseY <= botonH) {
+    String iso = inputs[3];
+    String country = inputs[4];
+    arbol.insertarNuevoNodo(iso, country, arbol.raiz);
   }
 
   // si clickeó fuera de todo, desactivar todos
@@ -388,7 +405,6 @@ void keyPressed() {
       if (arbol == null) {
         arbol = new ArbolAVL(nuevoNodo);
       } else {
-        println("hola");
         arbol.raiz = arbol.insertarNodo(arbol.raiz, iso, valor, country);
       }
       if (activeIndex != -1) inputs[activeIndex] = "";
